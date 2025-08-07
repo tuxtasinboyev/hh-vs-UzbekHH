@@ -4,16 +4,17 @@ import {
     IsOptional,
     IsString,
     Length,
-    Matches,
+    IsEnum,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { UserRole } from '@prisma/client';
 
 export class RegisterAuthDto {
     @ApiProperty({
         example: 'Ali Valiyev',
         description: 'Foydalanuvchining to‘liq ismi',
     })
-    @IsNotEmpty({ message: 'Toliq ism majburiy' })
+    @IsNotEmpty({ message: 'To‘liq ism majburiy' })
     @IsString()
     fullName: string;
 
@@ -22,25 +23,15 @@ export class RegisterAuthDto {
         description: 'Foydalanuvchining elektron pochtasi',
     })
     @IsNotEmpty({ message: 'Email majburiy' })
-    @IsEmail({}, { message: 'Notogri email format' })
+    @IsEmail({}, { message: 'Notog‘ri email format' })
     email: string;
-
-    @ApiProperty({
-        example: '+998901234567',
-        description: 'Foydalanuvchining telefon raqami (+998 bilan)',
-    })
-    @IsNotEmpty({ message: 'Telefon raqam majburiy' })
-    @Matches(/^(\+998)?[0-9]{9}$/, {
-        message: 'Telefon raqam +998 bilan yoki 9 xonali bolishi kerak',
-    })
-    phone: string;
 
     @ApiProperty({
         example: 'strongPassword123',
         description: 'Foydalanuvchining paroli (kamida 6 ta belgi)',
     })
     @IsNotEmpty({ message: 'Parol majburiy' })
-    @Length(6, 32, { message: 'Parol 6 dan 32 belgigacha bolishi kerak' })
+    @Length(6, 32, { message: 'Parol 6 dan 32 belgigacha bo‘lishi kerak' })
     password: string;
 
     @ApiProperty({
@@ -49,4 +40,12 @@ export class RegisterAuthDto {
     })
     @IsString()
     otp: string;
+
+    @ApiProperty({
+        example: 'DEVELOPER',
+        description: 'Foydalanuvchining roli: DEVELOPER yoki CUSTOMER',
+        enum: UserRole,
+    })
+    @IsEnum(UserRole, { message: 'Role noto‘g‘ri: DEVELOPER yoki CUSTOMER bo‘lishi kerak' })
+    role: UserRole;
 }
