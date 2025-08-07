@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//
+// ENUMS
+//
+enum UserRole {
+  ADMIN // Platformani boshqaradi
+  CUSTOMER // Loyiha e’lon qiluvchi (buyurtmachi)
+  DEVELOPER // Loyiha bajaruvchi (dasturchi)
+}
+
+enum ProjectStatus {
+  OPEN // Yangi loyiha, arizalar kutilmoqda
+  IN_PROGRESS // Loyiha bajarilmoqda
+  COMPLETED // Loyiha tugagan
+  CANCELLED // Loyiha bekor qilingan
+}
+
+enum ApplicationStatus {
+  PENDING // Ariza yuborilgan, lekin hali tanlanmagan
+  ACCEPTED // Buyurtmachi tomonidan qabul qilingan
+  REJECTED // Rad etilgan
+}
+
+enum PaymentStatus {
+  PENDING // To‘lov jarayonida
+  PAID // To‘lov muvaffaqiyatli
+  FAILED // To‘lov amalga oshmagan
+}
+
+enum PaymentGateway {
+  PAYME // Payme orqali to‘lov
+  CLICK // Click orqali to‘lov
+  CASH // Naqd to‘lov
+}
+
+//
+// MODELS
+//
+
+model User {
+  /// Foydalanuvchilar jadvali: admin, buyurtmachi, dasturchi
+  id          String   @id @default(uuid())
+  full_name   String
+  email       String   @unique
+  password    String?
+  role        UserRole
+  bio         String?
+  avatar_url  String?
+  rating      Float?   @default(0)
+  is_verified Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Aloqalar
+  profile           Profile?
+  projects          Project[]      @relation("CustomerProjects")
+  applications      Application[]
+  sentMessages      Message[]      @relation("SentMessages")
+  receivedMessages  Message[]      @relation("ReceivedMessages")
+  blog_posts        BlogPost[]
+  payments_sent     Payment[]      @relation("PaymentsSent")
+  payments_received Payment[]      @relation("PaymentsReceived")
+  OAuthAccount      OAuthAccount[]
+}
+
+model Profile {
+  /// Dasturchi profili: tajriba, ko‘nikmalar, portfolio
+  id            String   @id @default(uuid())
+  user_id       String   @unique
+  skills        String[]
+  github_url    String?
+  linkedin_url  String?
+  portfolio_url String?
+  experience    String?
+  created_at    DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
+}
+
+model Project {
+  /// Loyiha e’lon qilish: buyurtmachi tomonidan
+  id           String        @id @default(uuid())
+  title        String
+  description  String
+  technologies String[]
+  budget       Int
+  deadline     DateTime
+  status       ProjectStatus @default(OPEN)
+  customer_id  String
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+
+  // Aloqalar
+  customer     User          @relation("CustomerProjects", fields: [customer_id], references: [id])
+  applications Application[]
+  payments     Payment[]
+}
+
+model Application {
+  /// Dasturchi ariza yuboradi loyihaga
+  id           String            @id @default(uuid())
+  developer_id String
+  project_id   String
+  cover_letter String
+  price_offer  Int
+  status       ApplicationStatus @default(PENDING)
+  created_at   DateTime          @default(now())
+
+  developer User    @relation(fields: [developer_id], references: [id])
+  project   Project @relation(fields: [project_id], references: [id])
+}
+
+model Message {
+  /// Real-time chat uchun: userlar o‘zaro yozishadi
+  id          String   @id @default(uuid())
+  sender_id   String
+  receiver_id String
+  content     String
+  read        Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  sender   User @relation("SentMessages", fields: [sender_id], references: [id])
+  receiver User @relation("ReceivedMessages", fields: [receiver_id], references: [id])
+}
+
+model Payment {
+  /// To‘lovlar jadvali: buyurtmachi → dasturchi
+  id          String         @id @default(uuid())
+  payer_id    String // Buyurtmachi
+  receiver_id String // Dasturchi
+  project_id  String
+  amount      Int
+  status      PaymentStatus  @default(PENDING)
+  gateway     PaymentGateway
+  created_at  DateTime       @default(now())
+
+  payer    User    @relation("PaymentsSent", fields: [payer_id], references: [id])
+  receiver User    @relation("PaymentsReceived", fields: [receiver_id], references: [id])
+  project  Project @relation(fields: [project_id], references: [id])
+}
+
+model BlogPost {
+  /// O‘quv maqolalar, foydali kontent
+  id         String   @id @default(uuid())
+  author_id  String
+  title      String
+  content    String
+  tags       String[]
+  created_at DateTime @default(now())
+
+  author User @relation(fields: [author_id], references: [id])
+}
+
+model OAuthAccount {
+  id             String   @id @default(uuid())
+  provider       String
+  providerUserId String
+  accessToken    String
+  userId         String
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerUserId], name: "provider_providerUserId")
+}
