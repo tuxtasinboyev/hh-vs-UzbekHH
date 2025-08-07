@@ -38,7 +38,7 @@ export class AuthService {
     userAgent: string,
     ipAddress: string,
   ) {
-    const { email, fullName, password, phone, otp } = payload;
+    const { email, fullName, password, otp } = payload;
 
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
@@ -59,7 +59,7 @@ export class AuthService {
         email,
         full_name: fullName,
         password: hashedPassword,
-        role: 'CUSTOMER',
+        role: payload.role,
         is_verified: true,
       },
     });
@@ -123,7 +123,6 @@ export class AuthService {
         data: {
           email,
           full_name: `${name?.givenName} ${name?.familyName}`,
-          avatar_url: photos?.[0]?.value,
           password: null,
           role: 'CUSTOMER',
           is_verified: true,
@@ -133,6 +132,7 @@ export class AuthService {
       await this.prisma.profile.create({
         data: {
           user_id: user.id,
+          avatar_url: photos?.[0]?.value,
           skills: [],
         },
       });

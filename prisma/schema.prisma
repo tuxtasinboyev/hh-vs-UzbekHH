@@ -51,9 +51,8 @@ model User {
   full_name   String
   email       String   @unique
   password    String?
-  role        UserRole
+  role        UserRole @default(CUSTOMER)
   bio         String?
-  avatar_url  String?
   rating      Float?   @default(0)
   is_verified Boolean  @default(false)
   created_at  DateTime @default(now())
@@ -69,12 +68,15 @@ model User {
   payments_sent     Payment[]      @relation("PaymentsSent")
   payments_received Payment[]      @relation("PaymentsReceived")
   OAuthAccount      OAuthAccount[]
+  ReviewsGiven      Review[]       @relation("ReviewsGiven")
+  ReviewsReceived   Review[]       @relation("ReviewsReceived")
 }
 
 model Profile {
   /// Dasturchi profili: tajriba, ko‘nikmalar, portfolio
   id            String   @id @default(uuid())
   user_id       String   @unique
+  avatar_url    String?
   skills        String[]
   github_url    String?
   linkedin_url  String?
@@ -102,6 +104,7 @@ model Project {
   customer     User          @relation("CustomerProjects", fields: [customer_id], references: [id])
   applications Application[]
   payments     Payment[]
+  Review       Review[]
 }
 
 model Application {
@@ -170,4 +173,23 @@ model OAuthAccount {
   user User @relation(fields: [userId], references: [id])
 
   @@unique([provider, providerUserId], name: "provider_providerUserId")
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  rating      Int      @default(5)
+  comment     String?
+  reviewerId  String
+  developerId String
+  projectId   String?
+  created_at  DateTime @default(now())
+
+  reviewer  User     @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  developer User?    @relation("ReviewsReceived", fields: [developerId], references: [id])
+  project   Project? @relation(fields: [projectId], references: [id])
+
+  @@index([reviewerId])
+  @@index([developerId])
+  @@index([projectId])
+  @@map("reviews")
 }
