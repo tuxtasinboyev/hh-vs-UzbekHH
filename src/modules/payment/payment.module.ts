@@ -6,7 +6,7 @@ import { GuardsService } from 'src/common/guards/guards.service';
 
 @Module({
     imports: [JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secret_key', // configdan olingan bo‘lishi mumkin
+      secret: process.env.JWT_SECRET || 'secret_key', 
       signOptions: { expiresIn: '1d' },
     }),],
     providers: [PaymentsService,GuardsService],
