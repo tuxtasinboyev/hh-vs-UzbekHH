@@ -18,9 +18,9 @@ export class MailesService {
 
     async sendOtp(to: string, otpCode: string): Promise<void> {
         await this.transporter.sendMail({
-            from: `"Botify" <${process.env.MAIL_USER}>`,
+            from: `"San_Dev" <${process.env.MAIL_USER}>`,
             to,
-            subject: '🔐 Botify - Tasdiqlash kodi (OTP)',
+            subject: '🔐 San_Dev - Tasdiqlash kodi (OTP)',
             html: generateHtml(Number(otpCode)),
         });
     }
