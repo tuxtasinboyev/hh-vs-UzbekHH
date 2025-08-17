@@ -76,17 +76,52 @@ export class UpdateProfileDto {
 }
 
 
-// model Profile {
-//   /// Dasturchi profili: tajriba, ko‘nikmalar, portfolio
-//   id            String   @id @default(uuid())
-//   user_id       String   @unique
-//   avatar_url    String?
-//   skills        String[]
-//   github_url    String?
-//   linkedin_url  String?
-//   portfolio_url String?
-//   experience    String?
-//   created_at    DateTime @default(now())
+import {
+    ArrayMinSize,
+    IsInt,
+    Min,
+    IsDateString,
+} from 'class-validator';
+import { ProjectStatus } from '@prisma/client'; 
 
-//   user User @relation(fields: [user_id], references: [id])
-// }
+export class CreateProjectDto {
+    @ApiProperty({
+        example: 'E-commerce platform',
+        description: 'The title of the project',
+    })
+    @IsString()
+    @IsNotEmpty()
+    title: string;
+
+    @ApiProperty({
+        example: 'Build a full e-commerce platform using React and NestJS',
+        description: 'A detailed description of the project requirements',
+    })
+    @IsString()
+    @IsNotEmpty()
+    description: string;
+
+    @ApiProperty({
+        example: ['React', 'NestJS', 'PostgreSQL'],
+        description: 'List of required technologies',
+    })
+    @IsArray()
+    @ArrayMinSize(1)
+    @IsString({ each: true })
+    technologies: string[];
+
+    @ApiProperty({
+        example: 500,
+        description: 'Project budget (in USD or chosen currency)',
+    })
+    @IsInt()
+    @Min(1)
+    budget: number;
+
+    @ApiProperty({
+        example: '2025-09-01T00:00:00.000Z',
+        description: 'Project deadline (in ISO 8601 format)',
+    })
+    @IsDateString()
+    deadline: Date;
+}
