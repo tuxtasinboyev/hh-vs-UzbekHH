@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { SendMailDto } from '../dto/sendToEmail';
 import { RedisService } from 'src/core/config/redis/redis.service';
-import { generateHtml, generateOTP } from 'src/common/utilis/helper';
+import { generateHtml, generateOTP, generateProjectEmail } from 'src/common/utilis/helper';
 
 @Injectable()
 export class MailesService {
@@ -22,6 +22,14 @@ export class MailesService {
             to,
             subject: '🔐 San_Dev - Tasdiqlash kodi (OTP)',
             html: generateHtml(Number(otpCode)),
+        });
+    }
+    async sendProject(to: string, title: string, description?: string, budget?: number, deadline?: Date, technologies?: string[]): Promise<void> {
+        await this.transporter.sendMail({
+            from: `"San_Dev" <${process.env.MAIL_USER}>`,
+            to,
+            subject: '🔐 San_Dev - New Project',
+            html: generateProjectEmail(title, description, budget, deadline, technologies),
         });
     }
 

@@ -16,6 +16,10 @@ async function bootstrap() {
     new ValidationPipe({
     }),
   );
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
 
   const config = new DocumentBuilder()
     .setTitle('HH.UZ Platforma API')

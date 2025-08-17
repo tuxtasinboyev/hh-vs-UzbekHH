@@ -25,39 +25,6 @@ import {
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
-  @Get('google')
-  @UseGuards(AuthGuard('google'))
-  @ApiOperation({ summary: '🔐 Start Google Authentication' })
-  @ApiResponse({ status: 200, description: 'Redirects to Google for login' })
-  async googleAuth() {
-    // Passport handles redirection
-  }
-
-  @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
-  @ApiOperation({ summary: '✅ Google Authentication Callback' })
-  @ApiResponse({ status: 200, description: 'Google login successful, token returned' })
-  @ApiResponse({ status: 401, description: 'Unauthorized: Google auth failed' })
-  async googleAuthRedirect(@Req() req: Request) {
-    try {
-      const { profile, access_token } = req['user'];
-
-      const userAgent = req.headers['user-agent'] || 'unknown';
-      const ip =
-        req.headers['x-forwarded-for'] ||
-        req.socket.remoteAddress ||
-        'unknown';
-
-      return await this.authService.validateOAuthLogin(
-        profile,
-        access_token,
-      );
-    } catch (err) {
-      console.error('Google auth error:', err);
-      throw new UnauthorizedException('Google auth failed');
-    }
-  }
-
   @Post('register')
   @ApiOperation({ summary: '📥 Register with Email + OTP' })
   @ApiBody({ type: RegisterAuthDto })

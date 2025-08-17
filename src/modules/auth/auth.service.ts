@@ -112,63 +112,7 @@ export class AuthService {
     };
   }
 
-  async validateOAuthLogin(profile: any, accessToken: string) {
-    const { id: googleId, name, emails, photos } = profile;
-    const email = emails?.[0]?.value;
-
-    let user = await this.prisma.user.findUnique({ where: { email } });
-
-    if (!user) {
-      user = await this.prisma.user.create({
-        data: {
-          email,
-          full_name: `${name?.givenName} ${name?.familyName}`,
-          password: null,
-          role: 'CUSTOMER',
-          is_verified: true,
-        },
-      });
-
-      await this.prisma.profile.create({
-        data: {
-          user_id: user.id,
-          avatar_url: photos?.[0]?.value,
-          skills: [],
-        },
-      });
-    }
-
-    await this.prisma.oAuthAccount.upsert({
-      where: {
-        provider_providerUserId: {
-          provider: 'google',
-          providerUserId: googleId,
-        },
-      },
-      update: {
-        accessToken,
-      },
-      create: {
-        userId: user.id,
-        provider: 'google',
-        providerUserId: googleId,
-        accessToken,
-      },
-    });
-
-    const token = await this.signJwt({
-      id: user.id,
-      role: user.role,
-      email: user.email,
-    });
-
-    const { password, ...safeUser } = user;
-    return {
-      message: !user ? 'Google registration successful' : 'Google login successful',
-      access_token: token,
-      data: safeUser,
-    };
-  }
+  
   async resetPassword(email: string) {
     const existsExmail = await this.prisma.user.findUnique({ where: { email } })
     if (!existsExmail) throw new NotFoundException('user not found!')
